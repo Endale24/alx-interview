@@ -1,56 +1,41 @@
-#!/usr/bin/python3
-
-'''
-N queens
-'''
-
-from sys import argv
-
-
-def is_NQueen(cell: list) -> bool:
-    '''
-    True if N Queen, False if not
-    '''
-    row_number = len(cell) - 1
-    difference = 0
-    for index in range(0, row_number):
-        difference = cell[index] - cell[row_number]
-        if difference < 0:
-            difference *= -1
-        if difference == 0 or difference == row_number - index:
-            return False
-    return True
+#!/usr/bin/env python3
+""" The N queens puzzle is the challenge of placing N non-attacking queens on
+    an N×N chessboard. Write a program that solves the N queens problem.
+    Usage: nqueens N
+        If the user called the program with the wrong number of arguments,
+        print Usage: nqueens N, followed by a new line,
+        and exit with the status 1
+    where N must be an integer greater or equal to 4
+        If N is not an integer, print N must be a number,
+        followed by a new line, and exit with the status 1
+        If N is smaller than 4, print N must be at least 4,
+        followed by a new line, and exit with the status 1
+    The program should print every possible solution to the problem
+        One solution per line
+        You don’t have to print the solutions in a specific order
+    You are only allowed to import the sys module """
+import sys
 
 
-def solve_NQeens(dimension: int, row: int, cell: list, outcome: list):
+def nqueens(n: int):
     """
-    Return result of N Queens recusrivley
+    backtracking
     """
-    # Base case
-    if row == dimension:
-        print(outcome)
-    else:
-        for col in range(0, dimension):
-            cell.append(col)
-            outcome.append([row, col])
-            if (is_NQueen(cell)):
-                solve_NQeens(dimension, row + 1, cell, outcome)
-            cell.pop()
-            outcome.pop()
+    matrix = [[0 for x in range(n)] for y in range(n)]
+    print(str(matrix))
 
 
-if len(argv) != 2:
-    print('Usage: nqueens N')
-    exit(1)
-try:
-    N = int(argv[1])
-except BaseException:
-    print('N must be a number')
-    exit(1)
-if N < 4:
-    print('N must be at least 4')
-    exit(1)
-else:
-    outcome = []
-    cell = 0
-    solve_NQeens(int(N), cell, [], outcome)
+if __name__ == "__main__":
+    if len(sys.argv) > 2 or len(sys.argv) < 2:
+        print("Usage: nqueens N")
+        exit(1)
+
+    if not sys.argv[1].isdigit():
+        print("N must be a number")
+        exit(1)
+
+    if int(sys.argv[1]) < 4:
+        print("N must be at least 4")
+        exit(1)
+
+    nqueens(int(sys.argv[1]))
