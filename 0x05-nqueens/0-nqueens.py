@@ -1,41 +1,97 @@
-#!/usr/bin/env python3
-""" The N queens puzzle is the challenge of placing N non-attacking queens on
-    an N×N chessboard. Write a program that solves the N queens problem.
-    Usage: nqueens N
-        If the user called the program with the wrong number of arguments,
-        print Usage: nqueens N, followed by a new line,
-        and exit with the status 1
-    where N must be an integer greater or equal to 4
-        If N is not an integer, print N must be a number,
-        followed by a new line, and exit with the status 1
-        If N is smaller than 4, print N must be at least 4,
-        followed by a new line, and exit with the status 1
-    The program should print every possible solution to the problem
-        One solution per line
-        You don’t have to print the solutions in a specific order
-    You are only allowed to import the sys module """
+#!/usr/bin/python3
+"""0-nqueens module that solves the N queens problem
+"""
 import sys
 
 
-def nqueens(n: int):
+def nqueens(num):
+    """nqueens function that solves the N queens problem
+
+    Args:
+        num (int): number of queens
     """
-    backtracking
+    board = [[0 for x in range(num)] for y in range(num)]
+    solve_nqueens(board, 0, num)
+
+
+def solve_nqueens(board, col, num):
+    """solve_nqueens function that solves the N queens problem
+
+    Args:
+        board (list): board list
+        col (int): column number
+        num (int): number of queens in board
+
+    Returns:
+        bool: True if safe, False otherwise
     """
-    matrix = [[0 for x in range(n)] for y in range(n)]
-    print(str(matrix))
+    if col == num:
+        print_board(board)
+        return True
+
+    res = False
+    for i in range(num):
+        if is_safe(board, i, col, num):
+            board[i][col] = 1
+            res = solve_nqueens(board, col + 1, num) or res
+            board[i][col] = 0
+    return res
+
+
+def is_safe(board, row, col, num):
+    """is_safe function that checks if a queen can be placed on board
+
+    Args:
+        board (list): board list
+        row (int): row number
+        col (int): column number
+        num (int): number of queens in board
+
+    Returns:
+        bool: True if safe, False otherwise
+    """
+    safe_row = row
+    safe_col = col
+    while safe_col >= 0 and safe_row < num:
+        if board[safe_row][safe_col] == 1:
+            return False
+        safe_row += 1
+        safe_col -= 1
+
+    safe_row = row
+    safe_col = col
+    while safe_row >= 0 and safe_col >= 0:
+        if board[safe_row][safe_col] == 1:
+            return False
+        safe_row -= 1
+        safe_col -= 1
+
+    for i in range(col):
+        if board[row][i] == 1:
+            return False
+    return True
+
+
+def print_board(board):
+    """print_board function that prints the board
+
+    Args:
+        board (list): board list
+    """
+    print([[i, j] for i in range(
+        len(board)) for j in range(len(board)) if board[i][j] == 1])
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 2 or len(sys.argv) < 2:
+    if len(sys.argv) != 2:
         print("Usage: nqueens N")
-        exit(1)
-
-    if not sys.argv[1].isdigit():
+        sys.exit(1)
+    try:
+        NUM = int(sys.argv[1])
+        if NUM < 4:
+            print("N must be at least 4")
+            sys.exit(1)
+        nqueens(NUM)
+    except ValueError:
         print("N must be a number")
-        exit(1)
-
-    if int(sys.argv[1]) < 4:
-        print("N must be at least 4")
-        exit(1)
-
-    nqueens(int(sys.argv[1]))
+        sys.exit(1)
