@@ -2,70 +2,67 @@
 """0-nqueens module that solves the N queens problem
 """
 import sys
+from operator import attrgetter
+import random
+from chromosome import Chromosome
 
-def print_solution(board, N):
-    solution = []
-    for i in range(N):
-        for j in range(N):
-            if board[i][j] == 1:
-                solution.append(j+1)
-    print(", ".join(str(x) for x in solution))
+class NQueens:
+    def __init__(self, dimension, population_count, mutation_factor, iteration):
+        self.mutation_factor = mutation_factor
+        self.population_count = population_count
+        self.dimension = dimension
+        self.iteration = iteration
+        self.population = []
 
-def is_attack(board, row, col, N):
-    for i in range(col):
-        if board[row][i] == 1:
-            return True
+        for n in range(0, population_count):
+            chromosome = Chromosome(dimension)
+            self.population.append(chromosome)
 
-    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
-        if board[i][j] == 1:
-            return True
+    def total_fitness(self):
+        return sum([chromosome.fitness for chromosome in self.population])
 
-    for i, j in zip(range(row, N, 1), range(col, -1, -1)):
-        if board[i][j] == 1:
-            return True
+    def weighted_random_choice(self, choices):
+        max = sum(choices.values())
+        pick = random.uniform(0, max)
+        current = 0
+        for key, value in choices.items():
+            current += value
+            if current > pick:
+                return key
 
-    return False
+    # Choose better fitness using roulette wheels
+    def select(self):
+        random.shuffle(self.population)
+        new_population = []
+        choices = {chromosome: chromosome.fitness for chromosome in self.population}
+        for i in range(0, self.population_count):
+            new_population.append(self.weighted_random_choice(choices))
+        self.population = new_population
 
-def solve_NQ(board, col, N):
-    if col >= N:
-        print_solution(board, N)
-        return True
+    def crossover(self):
+        for i in range(0, len(self.population) if len(self.population) % 2 == 0 else len(self.population) - 1, 2):
+            point = random.choice(range(0, self.dimension))
+            parent_right1 = self.population[i].genes[point:self.dimension]
+            parent_right2 = self.population[i + 1].genes[point:self.dimension]
+            chromosome1 = self.population[i]
+            chromosome2 = self.population[i + 1]
+            chromosome1.genes[point:self.dimension] = parent_right2
+            chromosome2.genes[point:self.dimension] = parent_right1
+            self.population.extend([chromosome1, chromosome2])
 
-    res = False
-    for i in range(N):
-        if not is_attack(board, i, col, N):
-            board[i][col] = 1
+    def mutate(self):
+        for chromosome in self.population:
+            if random.random() < self.mutation_factor:
+                chromosome.genes[random.randint(0, self.dimension - 1)] = random.randint(0, self.dimension - 1)
 
-            res = solve_NQ(board, col + 1, N) or res
-
-            board[i][col] = 0  # backtrack
-
-    return res
-
-def solveNQ(N):
-    board = [[0]*N for _ in range(N)]
-
-    if not solve_NQ(board, 0, N):
-        print("Solution does not exist")
-        return False
-
-    return True
-
-def main():
-    if len(sys.argv) != 2:
-        print("Usage: nqueens N")
-        sys.exit(1)
-    try:
-        N = int(sys.argv[1])
-    except ValueError:
-        print("N must be a number")
-        sys.exit(1)
-
-    if N < 4:
-        print("N must be at least 4")
-        sys.exit(1)
-
-    solveNQ(N)
-
-if __name__ == "__main__":
-    main()
+    def solve(self):
+        for n in range(0, self.iteration):
+            self.select()
+            self.crossover()
+            self.mutate()
+            maximum_chromosome = max(self.population, key=attrgetter('fitness'))
+            maximum = maximum_chromosome.fitness
+            print 'Generation=>', n + 1, 'Maximum Fitness=>', maximum
+            if maximum == (self.dimension * (self.dimension - 1)) / 2:
+                print maximum_chromosome.genes, 'Fitness=>', maximum
+                break
